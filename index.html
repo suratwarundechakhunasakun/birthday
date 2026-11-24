@@ -23,6 +23,14 @@
 
 <div class="dock">
   <p class="status" id="status" role="status" aria-live="polite">กด 🎤 แล้วเป่าไมค์เพื่อดับเทียน</p>
+  <div class="meter" id="mic-meter" hidden>
+    <span class="meter__label">ระดับเสียง</span>
+    <span class="meter__track" role="meter" aria-label="ระดับเสียงจากไมโครโฟน"
+          aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <span class="meter__fill" id="mic-meter-fill"></span>
+      <span class="meter__mark" aria-hidden="true"></span>
+    </span>
+  </div>
   <div class="controls">
     <button type="button" class="btn btn--primary" id="btn-blow" aria-pressed="false">
       <span aria-hidden="true">🎤</span> <span class="btn__label">เป่าเทียน</span>

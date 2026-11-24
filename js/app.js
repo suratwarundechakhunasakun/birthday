@@ -24,7 +24,17 @@
     url: $('share-url'),
     note: $('share-note'),
     close: $('share-close'),
+    meter: $('mic-meter'),
+    meterFill: $('mic-meter-fill'),
   };
+
+  // level 0–1; เกณฑ์เป่าอยู่ที่ 2/3 (ดู onLevel ใน audio.js)
+  function showLevel(level) {
+    const pct = Math.round(level * 100);
+    el.meterFill.style.width = `${pct}%`;
+    el.meterFill.classList.toggle('is-hot', level >= 2 / 3);
+    el.meterFill.parentElement.setAttribute('aria-valuenow', String(pct));
+  }
 
   /* ---------------- ชื่อ/อายุจาก URL ---------------- */
 
@@ -94,6 +104,8 @@
 
   function setBlowBtn(listening) {
     el.blow.setAttribute('aria-pressed', String(listening));
+    el.meter.hidden = !listening;
+    if (!listening) showLevel(0);
     el.blow.querySelector('.btn__label').textContent =
       listening ? 'กำลังฟัง… (กดเพื่อหยุด)' : micFailed ? 'กดเพื่อเป่า' : 'เป่าเทียน';
   }
@@ -133,11 +145,11 @@
     setStatus('กำลังขอสิทธิ์ไมโครโฟน…');
     try {
       stopMic = await BirthdayAudio.startBlowDetector({
-        onLevel: lvl => Cake.setWind(lvl),
+        onLevel: lvl => { Cake.setWind(lvl); showLevel(lvl); },
         onBlow: celebrate,
       });
       setBlowBtn(true);
-      setStatus('เป่าไมค์ได้เลย! 🌬️');
+      setStatus('เป่าไมค์แรงๆ ให้แถบเลยเส้นเหลือง 🌬️');
     } catch (err) {
       console.warn('[mic]', err);
       micFailed = true;

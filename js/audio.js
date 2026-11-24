@@ -8,7 +8,7 @@
 window.BirthdayAudio = (() => {
   const BLOW = {
     calibrateMs: 600,   // ช่วงวัดเสียงรบกวนรอบข้างตอนเริ่ม
-    minRms: 0.08,       // ความดังขั้นต่ำที่นับว่า "เป่า" (0–1)
+    minRms: 0.05,       // ความดังขั้นต่ำที่นับว่า "เป่า" (0–1) — ไมค์มือถือบางรุ่นเบา
     noiseFactor: 4,     // ต้องดังกว่าเสียงรบกวนกี่เท่า
     holdMs: 350,        // ต้องดังต่อเนื่องนานเท่านี้ กันเสียงกระแทกสั้นๆ
   };
@@ -104,22 +104,30 @@ window.BirthdayAudio = (() => {
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
     });
+    // iOS Safari: หลังขอสิทธิ์ไมค์ AudioContext อาจเป็น 'suspended'/'interrupted'
+    // ถ้าไม่ resume, analyser จะได้แต่ค่า 0 ตลอด (ดูเหมือนไมค์ไม่ทำงาน)
+    if (c.state !== 'running') { try { await c.resume(); } catch { /* ignore */ } }
     const src = c.createMediaStreamSource(stream);
     const analyser = c.createAnalyser();
     analyser.fftSize = 1024;
     src.connect(analyser); // ไม่ต่อเข้า destination เพื่อไม่ให้เสียงไมค์ออกลำโพง (feedback)
-    const buf = new Float32Array(analyser.fftSize);
+    // Safari รุ่นเก่าไม่มี getFloatTimeDomainData → ใช้แบบ byte แทน
+    const useFloat = typeof analyser.getFloatTimeDomainData === 'function';
+    const buf = useFloat ? new Float32Array(analyser.fftSize) : new Uint8Array(analyser.fftSize);
+    const sample = i => (useFloat ? buf[i] : (buf[i] - 128) / 128);
 
     const startAt = performance.now();
-    let noise = 0, noiseSamples = 0, held = 0, last = startAt, raf = 0, stopped = false;
+    let noise = 0, noiseSamples = 0, held = 0, last = startAt, timer = 0, stopped = false;
 
-    const tick = (now) => {
+    const tick = () => {
+      const now = performance.now();
       if (stopped) return;
-      const dt = Math.min(100, now - last);
+      const dt = Math.min(250, now - last);
       last = now;
-      analyser.getFloatTimeDomainData(buf);
+      if (c.state === 'suspended') c.resume(); // เผื่อโดน interrupt ระหว่างฟัง (เช่น สายเข้า)
+      if (useFloat) analyser.getFloatTimeDomainData(buf); else analyser.getByteTimeDomainData(buf);
       let sum = 0;
-      for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+      for (let i = 0; i < buf.length; i++) { const v = sample(i); sum += v * v; }
       const rms = Math.sqrt(sum / buf.length);
 
       if (now - startAt < BLOW.calibrateMs) {
@@ -134,13 +142,13 @@ window.BirthdayAudio = (() => {
           onBlow && onBlow();
         }
       }
-      raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
+    // ใช้ setInterval แทน rAF: ไม่ผูกกับ refresh rate (มือถือโหมดประหยัดแบตลด rAF เหลือ 30fps หรือต่ำกว่า)
+    timer = setInterval(tick, 40);
 
     return function stop() {
       stopped = true;
-      cancelAnimationFrame(raf);
+      clearInterval(timer);
       src.disconnect();
       stream.getTracks().forEach(tr => tr.stop()); // ปิดไฟไมค์ของ browser ด้วย
       onLevel && onLevel(0);
