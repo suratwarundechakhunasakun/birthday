@@ -1,0 +1,189 @@
+:root {
+  --pink-100: #ffd6ec;
+  --pink-300: #ffb3d9;
+  --pink-500: #ff4da6;
+  --bg: #0a0612;
+  --glass: rgba(255, 214, 236, 0.08);
+  --glass-border: rgba(255, 214, 236, 0.22);
+  --font: "Mali", "Leelawadee UI", "Thonburi", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+}
+body {
+  background: radial-gradient(ellipse at 50% 45%, #1a0b2e 0%, #120822 40%, #0a0612 75%);
+  font-family: var(--font);
+  color: var(--pink-100);
+}
+[hidden] { display: none !important; }
+
+#scene {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  touch-action: none;           /* ให้ pointer events ทำงานบนมือถือโดยไม่ scroll */
+  cursor: pointer;
+  outline: none;
+}
+#scene:focus-visible { box-shadow: inset 0 0 0 2px #ff80bf66; }
+
+#confetti {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ---------- ข้อความอวยพร ---------- */
+.greeting {
+  position: fixed;
+  top: max(16px, env(safe-area-inset-top));
+  left: 16px; right: 16px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  font-weight: 700;
+  line-height: 1.25;
+  opacity: 0;
+  animation: fade-in 1.2s 1.4s ease-out forwards;
+}
+.greeting__line {
+  font-size: clamp(15px, 2.6vw, 22px);
+  font-weight: 500;
+  letter-spacing: .08em;
+  color: var(--pink-300);
+}
+.greeting__name {
+  font-size: clamp(26px, 6.5vw, 52px);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  background: linear-gradient(90deg, #ffd6ec, #ff80bf, #ffd166, #ffd6ec);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 14px rgba(255, 77, 166, .45));
+  animation: shimmer 6s linear infinite;
+}
+.greeting__age {
+  font-size: clamp(13px, 2.2vw, 17px);
+  font-weight: 500;
+  color: var(--pink-100);
+  opacity: .75;
+}
+
+/* ---------- แถบควบคุมด้านล่าง ---------- */
+.dock {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 3;
+  pointer-events: none;          /* ปล่อยให้คลิกทะลุไป canvas ยกเว้นตัวปุ่ม */
+}
+.status {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: .04em;
+  text-align: center;
+  opacity: .7;
+  min-height: 1.4em;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;              /* touch target ตาม WCAG 2.5.5 */
+  padding: 0 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: var(--glass);
+  color: var(--pink-100);
+  font: 500 14px/1 var(--font);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: background .2s, border-color .2s, transform .1s;
+}
+.btn:hover { background: rgba(255, 214, 236, 0.16); }
+.btn:active { transform: scale(.97); }
+.btn:focus-visible { outline: 2px solid var(--pink-300); outline-offset: 2px; }
+.btn:disabled { opacity: .5; cursor: progress; }
+.btn--primary {
+  background: rgba(255, 77, 166, 0.22);
+  border-color: rgba(255, 77, 166, 0.55);
+}
+.btn--primary:hover { background: rgba(255, 77, 166, 0.34); }
+.btn[aria-pressed="true"] {
+  background: rgba(255, 77, 166, 0.45);
+  border-color: var(--pink-500);
+  box-shadow: 0 0 18px rgba(255, 77, 166, .45);
+}
+#btn-blow[aria-pressed="true"] span[aria-hidden] { animation: pulse 1s ease-in-out infinite; }
+
+@media (max-width: 420px) {
+  .btn { padding: 0 13px; font-size: 13px; }
+}
+
+/* ---------- Dialog ---------- */
+.sheet {
+  width: min(380px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 22px;
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  background: #1a0b2e;
+  color: var(--pink-100);
+  font-family: var(--font);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+}
+.sheet::backdrop { background: rgba(10, 6, 18, .7); }
+.sheet h2 { margin: 0 0 14px; font-size: 19px; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; font-size: 14px; }
+.field input {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, .25);
+  color: #fff;
+  font: 16px var(--font);       /* 16px กัน iOS zoom ตอน focus */
+}
+.field input:focus-visible { outline: 2px solid var(--pink-300); outline-offset: 1px; }
+.field__note { margin: 0; font-size: 13px; color: var(--pink-300); min-height: 1.2em; }
+.sheet__actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+@keyframes fade-in { to { opacity: 1; } }
+@keyframes shimmer { to { background-position: 300% 0; } }
+@keyframes pulse { 50% { opacity: .4; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .greeting { animation: none; opacity: 1; }
+  .greeting__name, #btn-blow[aria-pressed="true"] span[aria-hidden] { animation: none; }
+  .btn { transition: none; }
+}

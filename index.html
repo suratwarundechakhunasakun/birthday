@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>สุขสันต์วันเกิด 🎂</title>
+<meta name="description" content="การ์ดวันเกิดเค้ก particle เรืองแสง เป่าเทียนผ่านไมโครโฟนได้">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<h1 class="greeting" id="greeting">
+  <span class="greeting__line">สุขสันต์วันเกิด</span>
+  <span class="greeting__name" id="greeting-name" hidden></span>
+  <span class="greeting__age" id="greeting-age" hidden></span>
+</h1>
+
+<canvas id="scene" tabindex="0" role="img"
+        aria-label="เค้กวันเกิดสามชั้นพร้อมเทียนหนึ่งเล่ม ประกอบจากจุดเรืองแสงสีชมพูบนพื้นหลังสีม่วงเข้ม"></canvas>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<div class="dock">
+  <p class="status" id="status" role="status" aria-live="polite">กด 🎤 แล้วเป่าไมค์เพื่อดับเทียน</p>
+  <div class="controls">
+    <button type="button" class="btn btn--primary" id="btn-blow" aria-pressed="false">
+      <span aria-hidden="true">🎤</span> <span class="btn__label">เป่าเทียน</span>
+    </button>
+    <button type="button" class="btn btn--primary" id="btn-relight" hidden>
+      <span aria-hidden="true">🕯️</span> <span class="btn__label">จุดเทียนใหม่</span>
+    </button>
+    <button type="button" class="btn" id="btn-music" aria-pressed="false">
+      <span aria-hidden="true">🎵</span> <span class="btn__label">เพลง</span>
+    </button>
+    <button type="button" class="btn" id="btn-share" aria-haspopup="dialog">
+      <span aria-hidden="true">🔗</span> <span class="btn__label">สร้างลิงก์</span>
+    </button>
+  </div>
+</div>
+
+<dialog class="sheet" id="share-dialog" aria-labelledby="share-title">
+  <form id="share-form" novalidate>
+    <h2 id="share-title">สร้างการ์ดวันเกิด</h2>
+    <label class="field">
+      <span>ชื่อคนเกิด</span>
+      <input type="text" name="name" id="share-name" maxlength="40" autocomplete="off" placeholder="เช่น มุก">
+    </label>
+    <label class="field">
+      <span>อายุ (ไม่ใส่ก็ได้)</span>
+      <input type="number" name="age" id="share-age" min="1" max="150" inputmode="numeric">
+    </label>
+    <div class="field" id="share-result" hidden>
+      <label for="share-url">ลิงก์สำหรับส่ง</label>
+      <input type="url" id="share-url" readonly>
+      <p class="field__note" id="share-note" role="status"></p>
+    </div>
+    <div class="sheet__actions">
+      <button type="button" class="btn" id="share-close">ปิด</button>
+      <button type="submit" class="btn btn--primary">สร้างลิงก์</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="js/main.js" defer></script>
+<script src="js/audio.js" defer></script>
+<script src="js/confetti.js" defer></script>
+<script src="js/app.js" defer></script>
+</body>
+</html>
