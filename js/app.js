@@ -103,15 +103,28 @@
     setBlowBtn(false);
   }
 
+  // in-app browser ของแอปแชท/โซเชียล มักไม่รองรับ getUserMedia หรือบล็อกไว้
+  const IN_APP_UA = /\b(Line|FBAN|FBAV|FB_IAB|Instagram|Messenger|TikTok|Twitter|MicroMessenger)\b/i;
+
   function micErrorMessage(err) {
-    switch (err && err.name) {
+    const name = (err && err.name) || 'Error';
+    if (IN_APP_UA.test(navigator.userAgent)) {
+      return 'เปิดในแอปแชทใช้ไมค์ไม่ได้ ให้กด ⋯ แล้วเลือก "เปิดใน Chrome/Safari"';
+    }
+    switch (name) {
       case 'NotAllowedError':
-      case 'SecurityError':      return 'ไม่ได้รับสิทธิ์ใช้ไมโครโฟน';
+      case 'PermissionDeniedError':
+      case 'SecurityError':
+        return 'ไม่ได้รับสิทธิ์ใช้ไมโครโฟน (กดไอคอนแม่กุญแจข้างแถบที่อยู่เพื่ออนุญาต)';
       case 'NotFoundError':
-      case 'OverconstrainedError': return 'ไม่พบไมโครโฟน';
-      case 'NotReadableError':   return 'ไมโครโฟนถูกโปรแกรมอื่นใช้อยู่';
+      case 'DevicesNotFoundError':
+      case 'OverconstrainedError': return 'ไม่พบไมโครโฟนในเครื่องนี้';
+      case 'NotReadableError':
+      case 'TrackStartError':
+      case 'AbortError':           return 'ไมโครโฟนถูกโปรแกรมอื่นใช้อยู่ หรือเปิดไม่ได้';
       case 'InsecureContextError': return 'ไมโครโฟนใช้ได้เฉพาะ https หรือ localhost';
-      default:                   return 'browser นี้ใช้ไมโครโฟนไม่ได้';
+      case 'NotSupportedError':    return 'browser นี้ไม่รองรับไมโครโฟน ลองเปิดใน Chrome หรือ Safari';
+      default:                     return `ใช้ไมโครโฟนไม่ได้ (${name})`; // แสดงชื่อ error ไว้ช่วยหาสาเหตุ
     }
   }
 
@@ -126,6 +139,7 @@
       setBlowBtn(true);
       setStatus('เป่าไมค์ได้เลย! 🌬️');
     } catch (err) {
+      console.warn('[mic]', err);
       micFailed = true;
       setBlowBtn(false);
       setStatus(`${micErrorMessage(err)} — กดปุ่มเพื่อเป่าเทียนแทน`);
